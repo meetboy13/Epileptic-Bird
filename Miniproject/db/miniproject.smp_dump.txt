@@ -1,0 +1,17 @@
+
+State Machine - |MiniProject|MOUSE:mouse|mouse_state
+Name mouse_state.INPUT_PACKETS mouse_state.WAIT_CMD_ACK mouse_state.WAIT_OUTPUT_READY mouse_state.LOAD_COMMAND2 mouse_state.LOAD_COMMAND mouse_state.INHIBIT_TRANS 
+mouse_state.INHIBIT_TRANS 0 0 0 0 0 0 
+mouse_state.LOAD_COMMAND 0 0 0 0 1 1 
+mouse_state.LOAD_COMMAND2 0 0 0 1 0 1 
+mouse_state.WAIT_OUTPUT_READY 0 0 1 0 0 1 
+mouse_state.WAIT_CMD_ACK 0 1 0 0 0 1 
+mouse_state.INPUT_PACKETS 1 0 0 0 0 1 
+
+State Machine - |MiniProject|game_fsm:inst28|state
+Name state.s_dead state.s_paused state.s_game state.s_init state.s_start 
+state.s_start 0 0 0 0 0 
+state.s_init 0 0 0 1 1 
+state.s_game 0 0 1 0 1 
+state.s_paused 0 1 0 0 1 
+state.s_dead 1 0 0 0 1 
