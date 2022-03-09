@@ -1,0 +1,14 @@
+Analysis & Synthesis Status : Successful - Thu May 30 12:48:13 2019
+Quartus II 64-Bit Version : 13.0.0 Build 156 04/24/2013 SJ Full Version
+Revision Name : miniproject
+Top-level Entity Name : MiniProject
+Family : Cyclone III
+Total logic elements : 1,392
+    Total combinational functions : 1,318
+    Dedicated logic registers : 387
+Total registers : 387
+Total pins : 72
+Total virtual pins : 0
+Total memory bits : 4,864
+Embedded Multiplier 9-bit elements : 0
+Total PLLs : 1
