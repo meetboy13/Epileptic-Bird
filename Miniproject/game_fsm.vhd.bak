@@ -1,0 +1,139 @@
+-- game_fsm.vhdl 
+-- A Mealy machine responsible for the control of the game process 
+ 
+library ieee; 
+use ieee.std_logic_1164.all; 
+use ieee.numeric_std.all; 
+ 
+entity game_fsm is 
+ 
+	port  
+	(   
+		clk,pause,mode_switch,sel,reset_in         : in std_logic;
+		reset_out, mode: out std_logic;
+		display: out std_logic_vector(1 downto 0));
+	); 
+ 
+end entity; 
+ 
+architecture rtl of game_fsm is 
+ 
+	-- Build an enumerated type for the state machine  
+	type state_type is (s_start, s_game, s_paused, s_dead); 
+ 
+	-- Register (and signal) to hold the current (and next) state  
+	signal state, next_state : state_type := s_start; 
+ 
+begin 
+ 
+	state_reg: process (clk)  
+	begin   
+		if reset = '1' then -- reset logic    
+			state <= s_idle; 
+ 
+		elsif (rising_edge(clk)) then -- next state register: 
+ 
+			state <= next_state;   
+		end if;  
+	end process; 
+ 
+	 -- Determine the next state based only on the current state  
+	 -- and the input (do not wait for a clock edge).  
+	 next_state_fn: process(clk)  
+	 begin   
+		case state is    
+			when s_start =>     
+				if sel = '0' then
+					next_state <= s_start;
+				else      
+					if mode_switch = '0' then
+						mode <= '0';
+					else	
+						mode <='1';
+					next_state <= s_game;
+				end if;  
+			when s_game =>     
+				if cc_value < "0111" then
+					next_state <= s_start;
+				elsif cc_value = "0111" then
+					next_state <= s_data;
+				end if;
+			when s_data =>      
+				if cc_value < "1111" then
+					next_state <= s_data;
+				end if;
+				if (bc_value > "110" and cc_value > "1110")then 
+					next_state <= s_stop;
+				end if;
+			when s_stop =>      
+				if cc_value < "1111" then
+					next_state <= s_stop;
+				elsif cc_value = "1111" then
+					next_state <= s_idle;
+				end if;
+		end case;   
+	 end process;
+	 
+--Determine the output based only on the current state
+--and the input (do not wait for a clock edge).
+
+output_fn: process (clk) -- output logic
+begin
+	--default output values
+	cc_enable <= '0';
+	cc_reset <= '0';
+	bc_reset<= '0';
+	bc_enable<= '0';
+	data_ready <= '0';
+	sr_enable<= '0';
+	debug_fsm<= "1111";--useful for LED debugging
+	
+	case state is
+		when s_idle =>
+			if rx = '0' then
+				data_ready <='0';
+				cc_reset <= '1';
+			end if;
+			debug_fsm(0) <= '0';
+		when s_start=>
+			cc_reset <= '0';
+			bc_reset <= '0';
+			if cc_value < "0111" then
+				cc_enable <= '1';
+			else 
+				cc_reset <= '1';
+				bc_reset <= '1';
+			end if;
+			debug_fsm(1) <= '0';
+		when s_data=>
+			cc_reset <= '0';
+			bc_enable <= '0';
+			bc_reset <= '0';
+			cc_enable <= '0';
+			if cc_value < "1111" then
+				cc_enable <= '1';
+				sr_enable <= '0';
+			else
+				cc_enable <= '0';
+				bc_enable <= '1';
+				sr_enable <= '1'; -- capture a bit before count check (as count only goes up to 7)
+				if bc_value = "111" then
+					cc_reset <= '1';
+				else 
+					cc_reset <= '1';
+				end if;
+			end if;
+			debug_fsm(2) <= '0';
+		when s_stop=>
+			cc_reset <= '0';
+			bc_reset <= '0';
+			data_ready <='1';
+			if cc_value < "1111" then
+				cc_enable <= '1';
+			else  
+				cc_reset <= '1';
+			end if;			
+			debug_fsm(3) <= '0';
+		end case;
+	end process;
+end rtl;

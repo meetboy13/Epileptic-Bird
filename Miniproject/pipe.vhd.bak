@@ -1,0 +1,74 @@
+-- Pipe
+--
+LIBRARY IEEE;
+USE IEEE.STD_LOGIC_1164.all;
+USE  IEEE.STD_LOGIC_ARITH.all;
+USE  IEEE.STD_LOGIC_UNSIGNED.all;
+LIBRARY lpm;
+USE lpm.lpm_components.ALL;
+
+PACKAGE de0core IS
+	COMPONENT vga_sync
+	PORT(	clock_25Mhz		: IN	STD_LOGIC;
+			pipe_on, paused : IN std_LOGIC;
+			rom_mux_output : in std_logic;
+			signal sred,sblue,sgreen : in std_LOGIC_VECTOR(2 downto 0);
+			red_out, green_out, blue_out : out std_logic_vector(3 downto 0);
+			signal char_select : out std_LOGIC_VECTOR(5 downto 0);
+			horiz_sync_out, vert_sync_out	: OUT	STD_LOGIC;
+			pixel_row, pixel_column: OUT STD_LOGIC_VECTOR(9 DOWNTO 0);
+			rowp, colp : out std_logic_vector(2 downto 0));
+	END COMPONENT;
+END de0core;
+
+			-- Pipe Video 
+LIBRARY IEEE;
+USE IEEE.STD_LOGIC_1164.all;
+USE IEEE.STD_LOGIC_ARITH.all;
+USE IEEE.STD_LOGIC_SIGNED.all;
+LIBRARY work;
+USE work.de0core.all;
+
+ENTITY pipe IS
+Generic(ADDR_WIDTH: integer := 12;
+		DATA_WIDTH: integer := 1
+		Start_POS: STD_LOGIC_VECTOR(9 downto 0) := conV_STD_LOGIC_VECTOR(700,10);
+
+   PORT(SIGNAL vert_sync_int, clk			: IN std_logic	
+		SIGNAL pixel_row, pixel_column				:in std_logic_vector(9 DOWNTO 0);
+		pipe_on		: OUT std_logic);		
+END pipe;
+
+architecture behavior of pipe is
+
+			-- Video Display Signals   
+SIGNAL horiz_sync_int,reset			: std_logic;
+SIGNAL Size 								: std_logic_vector(9 DOWNTO 0);  
+SIGNAL pipe_motion : std_logic_vector(9 DOWNTO 0);
+SIGNAL pipe_pos		: std_logic_vector(9 DOWNTO 0) := Start_POS;
+signal ledsignal : std_logic_vector(1 downto 0);
+
+BEGIN    
+Size <= CONV_STD_LOGIC_VECTOR(10,10);
+
+RGB_Display: Process (pipe_pos,pixel_column, pixel_row)
+BEGIN
+ IF (unsigned(pipe_pos) <= unsigned(pixel_column + Size)) AND
+ 			-- compare positive numbers only
+ 	(unsigned(pipe_pos + Size) >= unsigned(pixel_column))
+	THEN
+ 		Pipe_on <= '1';
+ 	ELSE
+ 		Pipe_on <= '0';
+	END IF;
+	
+END process RGB_Display;
+
+Move_pipe: process
+BEGIN
+	WAIT UNTIL vert_sync_int'event and vert_sync_int = '1';
+				Pipe_motion <= CONV_STD_LOGIC_VECTOR(4,10);
+				Pipe_pos <= Pipe_pos + Pipe_motion;
+END process Move_pipe;
+
+END behavior;

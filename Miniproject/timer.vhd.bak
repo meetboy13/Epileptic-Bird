@@ -1,0 +1,23 @@
+library ieee; 
+use ieee.std_logic_1164.all; 
+use ieee.numeric_std.all; 
+
+entity timer is
+	port(clock, reset : in std_logic;
+			signal_out : out std_logic);
+end entity;
+
+architecture arch of timer is
+begin
+process(clock, reset)
+variable timer : std_logic_vector(9 downto 0) := "1111111111";
+begin
+	if(rising_edge(clk)) then
+		timer := timer + conv_std_logic_vector(1,10);
+	elsif(timer = "1111111111" and reset = '1') then
+		signal_out <= '1';
+	else
+		signal_out <= '0';
+	end if;
+end process;
+end arch;

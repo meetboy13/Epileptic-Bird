@@ -1,0 +1,35 @@
+library IEEE;
+use  IEEE.STD_LOGIC_1164.all;
+use  IEEE.STD_LOGIC_ARITH.all;
+use  IEEE.STD_LOGIC_UNSIGNED.all;
+
+entity bcd_counter is 
+	port( direction : in std_logic;
+			enable : in std_logic;
+			count : out std_logic_vector(3 downto 0));
+end bcd_counter
+
+architecture arc of bcd_counter is
+
+signal temp_count : std_logic_vector(3 downto 0);
+
+begin
+process
+begin
+	if (direction = '1') then
+		temp_count <= "0000"
+		if (enable'event and enable = '1') then
+			temp_count <= temp_count + 1;
+		elsif (temp_count = "1001" and enable'event and enable = '1')
+			temp_count <= "0000"
+		end if;
+	elsif (direction = '0') then
+		temp_count <= "1001"
+		if (enable'event and enable = '1') then
+			temp_count <= temp_count - 1;
+		elsif (temp_count = "0000" and enable'event and enable = '1')
+			temp_count <= "1001"
+		end if;
+	end if;
+end process;
+end arc;
